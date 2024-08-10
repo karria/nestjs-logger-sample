@@ -1,13 +1,13 @@
 import { Injectable, LoggerService, LogLevel } from '@nestjs/common';
-import pino from 'pino';
+import pino, { levels } from 'pino';
 import { multistream } from 'pino-multi-stream';
 import { ILoggerService } from './interface/logger.service.interface';
-import rfs from 'rotating-file-stream';
+import * as rfs from 'rotating-file-stream';
 import * as fs from 'fs';
 import * as path from 'path';
 
 // 로그 파일이 저장될 디렉토리
-const logDirectory = path.join(__dirname, 'logs');
+const logDirectory = path.join(__dirname, '../../../logs');
 
 // 로그 디렉토리가 존재하지 않으면 생성
 if (!fs.existsSync(logDirectory)) {
@@ -24,21 +24,21 @@ const rotateStream = rfs.createStream('logfile.log', {
 });
 
 @Injectable()
-export class MyLoggerService implements ILoggerService {
+export class PinoLoggerService implements ILoggerService, LoggerService {
   private readonly logger = pino(
     {
-      level: 'debug',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-        },
-      },
+      level: 'trace', // Set the lowest log level to 'trace'
+      // transport: {
+      //   target: 'pino-pretty',
+      //   options: {
+      //     colorize: false,
+      //   },
+      // },
       timestamp: pino.stdTimeFunctions.isoTime,
     },
     multistream([
       { stream: process.stdout },
-      { stream: rotateStream },
+      { stream: rotateStream},
     ])
   );
   
@@ -61,7 +61,5 @@ export class MyLoggerService implements ILoggerService {
   verbose(message: string) {
     this.logger.trace(message);
   }
-  
-  
 }
 
